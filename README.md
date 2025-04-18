@@ -32,7 +32,7 @@ This looks like this:
 
 ```
 International Project
-+-------------------+
+---------------------
 AI model for predicting
 Water Hyacinth spread
 on lakes in South Africa,
