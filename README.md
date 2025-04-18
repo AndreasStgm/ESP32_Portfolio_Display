@@ -15,21 +15,21 @@ At first you'll get a menu with the various sub-topics that are within the portf
 
 This looks like this:
 
-´´´
+```
 +---------------------------+
 |   > International         |
 |     Honours Program       |
 |     Ganspoel Controller   |
 |     Reflection            |
 +---------------------------+
-´´´
+```
 
 Then you can press the confirm button to go to a specific section.
 These will contain a more detailed explanation of the topic.
 
 This looks like this:
 
-´´´
+```
 International Project
 +-------------------+
 AI model for predicting
@@ -37,5 +37,5 @@ Water Hyacinth spread
 on lakes in South Africa,
 using satellite imagery and
 wind data...
-[  scrollable  ]
-´´´
+[ scrollable ]
+```
