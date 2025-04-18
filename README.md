@@ -16,12 +16,13 @@ At first you'll get a menu with the various sub-topics that are within the portf
 This looks like this:
 
 ```
-+---------------------------+
-|   > International         |
-|     Honours Program       |
-|     Ganspoel Controller   |
-|     Reflection            |
-+---------------------------+
++----------------------------------+
+|   > International Project        |
+|     Honours Program              |
+|     Bluetooth Media Controller   |
+|     Personal Reflection          |
+|     Future Goals                 |
++----------------------------------+
 ```
 
 Then you can press the confirm button to go to a specific section.
