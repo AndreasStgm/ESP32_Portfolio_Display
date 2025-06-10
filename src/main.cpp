@@ -3,17 +3,8 @@
 #include "display_hal.h"
 #include "storage_hal.h"
 
-// ===== Struct Definitions =====
-
-struct Topic
-{
-  String name;
-  String textFileName;
-};
-
-// ===== Global Variable Declarations =====
-// const uint8_t topicArraySize = 5;
-// std::array<Topic, topicArraySize> topicArray;
+// ===== Global Variables =====
+std::array<Topic, MAXIMUM_FILE_AMOUNT> topicArray;
 
 // ===== Setup =====
 
@@ -41,14 +32,32 @@ void setup()
     displayStatusMessage("SD Card Size: ", (String)stats[0] + "MB", CYAN);
     displayStatusMessage("SD Card Total Space: ", (String)stats[1] + "MB", CYAN);
     displayStatusMessage("SD Card Used Space: ", (String)stats[2] + "MB", CYAN);
+
+    topicArray = assembleTopicsFromDirectory(SD, "/");
+    if (!topicArray[0].textFileName.isEmpty())
+    {
+      displayStatusMessage("TXT File Read: ", "OK", GREEN);
+    }
+    else
+    {
+      displayStatusMessage("TXT File Read: ", "NONE FOUND", RED);
+    }
+    displayPrintln("TXT Files found: ", WHITE);
+    for (uint8_t i = 0; i < MAXIMUM_FILE_AMOUNT; i++)
+    {
+      if (!topicArray[i].textFileName.isEmpty())
+      {
+        displayPrintln("  " + topicArray[i].textFileName, CYAN);
+      }
+    }
   }
   else
   {
     displayPrintln("No SD Card Attached!", WHITE);
   }
 
-  // topicArray = listDirAndAssembleTopics(SD, "/");
-  // readFile(SD, "/international_project.txt");
+  delay(2500);
+  displayDrawInterface(MAGENTA, WHITE, "Select");
 }
 
 // ===== Loop =====

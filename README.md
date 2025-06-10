@@ -46,4 +46,4 @@ wind data...
 Here are some extra ideas for future development.
 
 - QR Code generation: convert links (GitHub, photos, video) into a QR code and display it on-screen.
-- BLE support: send your portfolio to nearby devices.
+- BLE support: send the portfolio to nearby devices.

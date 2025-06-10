@@ -21,6 +21,12 @@ Arduino_GFX *gfx = new Arduino_Canvas(
 
 // ===== Functions Implementations =====
 
+void clearDisplay()
+{
+    gfx->fillScreen(BLACK);
+    gfx->flush();
+}
+
 void initializeDisplay(uint8_t initDisplayBrightness)
 {
     // Start and clear the display
@@ -29,8 +35,7 @@ void initializeDisplay(uint8_t initDisplayBrightness)
         Serial.begin(9600);
         Serial.println("gfx->begin() failed!");
     }
-    gfx->fillScreen(BLACK);
-    gfx->flush();
+    clearDisplay();
 
     // Setting up the LEDC and configuring the backlight pin
     ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_12_BIT);
@@ -61,5 +66,31 @@ void displayPrintln(String text, uint16_t color)
 {
     gfx->setTextColor(color);
     gfx->println(text);
+    gfx->flush();
+}
+
+void displayDrawInterface(uint16_t interfaceColor, uint16_t buttonIconTextColor, String centerButtonText)
+{
+    clearDisplay();
+    // Draw the interface itself, in a for loop to be adaptive with thickness
+    for (uint8_t i = 0; i < INTERFACE_BORDER_WIDTH; i++)
+    {
+        // Draw the outline
+        gfx->drawRect(i, i, SCREEN_WIDTH - (2 * i), SCREEN_HEIGHT - (2 * i), interfaceColor);
+        // Draw the navigation outline on the right
+        gfx->drawLine(SCREEN_WIDTH - NAVIGATION_WIDTH + i, i, SCREEN_WIDTH - NAVIGATION_WIDTH + i, SCREEN_HEIGHT, interfaceColor);
+        // Draw the navigation divisions
+        gfx->drawLine(SCREEN_WIDTH - NAVIGATION_WIDTH + i, SCREEN_HEIGHT / 3 + i, SCREEN_WIDTH, SCREEN_HEIGHT / 3 + i, interfaceColor);
+        gfx->drawLine(SCREEN_WIDTH - NAVIGATION_WIDTH + i, SCREEN_HEIGHT / 3 * 2 + i, SCREEN_WIDTH, SCREEN_HEIGHT / 3 * 2 + i, interfaceColor);
+    }
+    // Print the text for the center button
+    gfx->setTextColor(buttonIconTextColor);
+    gfx->setTextSize(2);                                                                                                                // 2 -> 12x16 character size
+    gfx->setCursor(SCREEN_WIDTH - NAVIGATION_WIDTH + ((NAVIGATION_WIDTH - centerButtonText.length() * 12) / 2), SCREEN_HEIGHT / 2 - 8); // Compensating and centering text based on size
+    gfx->print(centerButtonText);
+    // Draw the navigation buttons
+    gfx->drawTriangle(SCREEN_WIDTH - NAVIGATION_WIDTH / 2, SCREEN_HEIGHT / 9, SCREEN_WIDTH - NAVIGATION_WIDTH / 3, SCREEN_HEIGHT / 9 * 2, SCREEN_WIDTH - NAVIGATION_WIDTH / 3 * 2, SCREEN_HEIGHT / 9 * 2, buttonIconTextColor);
+    gfx->drawTriangle(SCREEN_WIDTH - NAVIGATION_WIDTH / 2, SCREEN_HEIGHT / 9 * 8, SCREEN_WIDTH - NAVIGATION_WIDTH / 3, SCREEN_HEIGHT / 9 * 7, SCREEN_WIDTH - NAVIGATION_WIDTH / 3 * 2, SCREEN_HEIGHT / 9 * 7, buttonIconTextColor);
+    // Flush all graphics so they are displayed
     gfx->flush();
 }

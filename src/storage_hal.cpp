@@ -56,6 +56,41 @@ std::array<uint64_t, 3> getSDCardStats()
     return {cardSize, totalSpace, usedSpace};
 }
 
+std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, const char *dirname)
+{
+    File root = fs.open(dirname);
+    if (!root)
+    {
+        displayStatusMessage("Open Directory: ", "FAILED", RED);
+    }
+    if (!root.isDirectory())
+    {
+        displayPrintln("Specified path is not a directory!", WHITE);
+    }
+
+    std::array<Topic, MAXIMUM_FILE_AMOUNT> resultArray;
+    uint8_t arrayPosition = 0;
+
+    File file = root.openNextFile();
+    while (file)
+    {
+        if (!file.isDirectory())
+        {
+            String stringName = (String)file.name();
+            if (stringName.endsWith(".txt"))
+            {
+                auto newTopic = Topic();
+                newTopic.name = stringName.substring(0, stringName.indexOf(".txt"));
+                newTopic.textFileName = file.name();
+                resultArray[arrayPosition] = newTopic;
+                arrayPosition++;
+            }
+        }
+        file = root.openNextFile();
+    }
+    return resultArray;
+}
+
 void readFile(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
@@ -73,41 +108,4 @@ void readFile(fs::FS &fs, const char *path)
         Serial.write(file.read());
     }
     file.close();
-}
-
-void listDirAndAssembleTopics(fs::FS &fs, const char *dirname)
-{
-    // std::array<Topic, 5> resultArray;
-
-    // File root = fs.open(dirname);
-    // if (!root)
-    // {
-    //     Serial.println("Failed to open directory");
-    //     return resultArray;
-    // }
-    // if (!root.isDirectory())
-    // {
-    //     Serial.println("Not a directory");
-    //     return resultArray;
-    // }
-
-    // uint8_t arrayPosition = 0;
-    // File file = root.openNextFile();
-    // while (file && arrayPosition < topicArraySize)
-    // {
-    //     if (!file.isDirectory())
-    //     {
-    //         Serial.print("  FILE: ");
-    //         Serial.print(file.name());
-    //         Serial.print("  SIZE: ");
-    //         Serial.println(file.size());
-
-    //         auto newTopic = Topic();
-    //         newTopic.name = file.name(); // TODO: Change to actual name based on filename
-    //         newTopic.textFileName = file.name();
-    //         resultArray[arrayPosition] = newTopic;
-    //         arrayPosition++;
-    //     }
-    //     file = root.openNextFile();
-    // }
 }

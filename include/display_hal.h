@@ -26,7 +26,15 @@
 #define LEDC_TIMER_12_BIT 12 // use 12 bit precission for LEDC timer
 #define LEDC_BASE_FREQ 5000  // use 5000 Hz as a LEDC base frequency
 
+// ===== Interface Definitions =====
+
+#define INTERFACE_BORDER_WIDTH 3
+#define NAVIGATION_WIDTH 90
+
 // ===== Function Definitions =====
+
+// Clears the display by filling it with black
+void clearDisplay();
 
 // Initializes the display and it's backlight at the specified value, sets screen to black and cursor at 0, 0 (top left)
 void initializeDisplay(uint8_t initDisplayBrightness);
@@ -42,3 +50,6 @@ void displayPrint(String text, uint16_t color);
 
 // To print a string finishing with a newline
 void displayPrintln(String text, uint16_t color);
+
+// Draw the border of the application's interface
+void displayDrawInterface(uint16_t interfaceColor, uint16_t centerButtonTextColor, String centerButtonText);
