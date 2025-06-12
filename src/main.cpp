@@ -14,6 +14,16 @@ void setup()
   initializeDisplay(250);
   displayStatusMessage("Initialize Display: ", "OK", GREEN);
 
+  // Initialize the display touch screen
+  if (initializeTouchScreen())
+  {
+    displayStatusMessage("Initialize Touchscreen: ", "OK", GREEN);
+  }
+  else
+  {
+    displayStatusMessage("Initialize Touchscreen: ", "FAILED", RED);
+  }
+
   // Initialize the SD card
   if (initializeStorage())
   {
@@ -64,5 +74,7 @@ void setup()
 
 void loop()
 {
+  readTouchScreen();
+
   delay(1);
 }
