@@ -1,20 +1,17 @@
 #include "display_hal.h"
 
-// ===== Enum Definitions =====
+// ===== Touch Panel Configuration =====
 
-enum class TouchState
-{
-    RELEASED,
-    PRESSED
-};
+BBCapTouch touchPanel;
 
-enum class ButtonPressed
-{
-    NONE,
-    UP_BUTTON,
-    SELECT_BACK_BUTTON,
-    DOWN_BUTTON
-};
+TouchState previousTouchState = TouchState::RELEASED;
+TouchState currentTouchState = TouchState::RELEASED;
+
+ButtonPressed whichButtonPressed = ButtonPressed::NONE;
+
+unsigned long last_rise_time = 0;
+
+bool singlePressFunctionCompleted = false;
 
 // ===== Display Driver and Panel Configuration =====
 
@@ -34,19 +31,6 @@ Arduino_GFX *gfx = new Arduino_Canvas(
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
     panel);
-
-// ===== Touch Panel Configuration =====
-
-BBCapTouch touchPanel;
-
-TouchState previousTouchState = TouchState::RELEASED;
-TouchState currentTouchState = TouchState::RELEASED;
-
-ButtonPressed whichButtonPressed = ButtonPressed::NONE;
-
-unsigned long last_rise_time = 0;
-
-bool singlePressFunctionCompleted = false;
 
 // ===== Functions Implementations =====
 
@@ -79,7 +63,7 @@ bool initializeTouchScreen()
     }
 }
 
-void readTouchScreen()
+ButtonPressed readTouchScreen()
 {
     TOUCHINFO samplesInfo;
     // Being pressed
@@ -113,47 +97,31 @@ void readTouchScreen()
         currentTouchState = TouchState::RELEASED;
     }
 
-    determineTouchPress();
+    return determineTouchPress();
 }
 
-void determineTouchPress()
+ButtonPressed determineTouchPress()
 {
+    ButtonPressed buttonToReturn = ButtonPressed::NONE;
+
     // Detect a long press of the buttons
     if (previousTouchState == TouchState::PRESSED && currentTouchState == TouchState::PRESSED && millis() - last_rise_time > TOUCH_PRESS_LONG_PRESS_DELAY)
     {
         // Only allow a long press for the up and down buttons
         if (whichButtonPressed == ButtonPressed::UP_BUTTON || whichButtonPressed == ButtonPressed::DOWN_BUTTON)
         {
-            handleButtonActions();
+            buttonToReturn = whichButtonPressed;
         }
     }
     // Detect a rising edge of a button
     else if (previousTouchState == TouchState::RELEASED && currentTouchState == TouchState::PRESSED)
     {
         last_rise_time = millis();
-        handleButtonActions();
+        buttonToReturn = whichButtonPressed;
     }
 
     previousTouchState = currentTouchState;
-}
-
-void handleButtonActions()
-{
-    switch (whichButtonPressed)
-    {
-    case ButtonPressed::UP_BUTTON:
-        displayPrint("UP", WHITE);
-        break;
-    case ButtonPressed::DOWN_BUTTON:
-        displayPrint("DOWN", WHITE);
-        break;
-    case ButtonPressed::SELECT_BACK_BUTTON:
-        displayPrint("SL/BK", WHITE);
-        break;
-
-    default:
-        break;
-    }
+    return buttonToReturn;
 }
 
 void clearDisplay()
@@ -166,6 +134,16 @@ void setBrightness(uint8_t value)
 {
     uint32_t duty = 4095 * value / 255;
     ledcWrite(LEDC_CHANNEL_0, duty);
+}
+
+void setCursorLocation(uint16_t x, uint16_t y)
+{
+    gfx->setCursor(x, y);
+}
+
+void setTextSize(uint8_t size)
+{
+    gfx->setTextSize(size);
 }
 
 void displayStatusMessage(String message, String state, uint16_t stateColor)

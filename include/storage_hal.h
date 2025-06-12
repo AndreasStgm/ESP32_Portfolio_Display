@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <SD.h>
 
-#include "display_hal.h"
-
 // ===== Storage Configuration Definitions =====
 
 #define STORAGE_CS 10
@@ -35,8 +33,11 @@ String determineSDCardType();
 // Show the total, used and free space of the SD card
 std::array<uint64_t, 3> getSDCardStats();
 
-//
+// Assemble the different topics from the specified directory, there is a maximum amount and they must be TXT files
 std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, const char *dirname);
+
+// Count the amount of topics that are actually filled in in the array
+uint8_t countAvailableTopics(std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray);
 
 // Read a file from path
 void readFile(fs::FS &fs, const char *path);

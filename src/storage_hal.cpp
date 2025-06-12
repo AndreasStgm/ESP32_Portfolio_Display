@@ -59,14 +59,14 @@ std::array<uint64_t, 3> getSDCardStats()
 std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, const char *dirname)
 {
     File root = fs.open(dirname);
-    if (!root)
-    {
-        displayStatusMessage("Open Directory: ", "FAILED", RED);
-    }
-    if (!root.isDirectory())
-    {
-        displayPrintln("Specified path is not a directory!", WHITE);
-    }
+    // if (!root) // TODO: fix by passing an error to the main and filling the array through a pointer
+    // {
+    //     displayStatusMessage("Open Directory: ", "FAILED", RED);
+    // }
+    // if (!root.isDirectory())
+    // {
+    //     displayPrintln("Specified path is not a directory!", WHITE);
+    // }
 
     std::array<Topic, MAXIMUM_FILE_AMOUNT> resultArray;
     uint8_t arrayPosition = 0;
@@ -89,6 +89,20 @@ std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, c
         file = root.openNextFile();
     }
     return resultArray;
+}
+
+uint8_t countAvailableTopics(std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray)
+{
+    // If the array is not completely filled, return the found index where it is empty, this is then the count of filled objects
+    for (uint8_t i = 0; i < MAXIMUM_FILE_AMOUNT; i++)
+    {
+        if (topicsArray[i].textFileName.isEmpty())
+        {
+            return i;
+        }
+    }
+
+    return MAXIMUM_FILE_AMOUNT;
 }
 
 void readFile(fs::FS &fs, const char *path)

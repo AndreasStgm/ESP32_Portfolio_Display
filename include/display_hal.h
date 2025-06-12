@@ -41,6 +41,23 @@
 
 #define INTERFACE_BORDER_WIDTH 3
 #define NAVIGATION_WIDTH 90
+#define PADDING_SIZE 45
+
+// ===== Enum Definitions =====
+
+enum class TouchState
+{
+    RELEASED,
+    PRESSED
+};
+
+enum class ButtonPressed
+{
+    NONE,
+    UP_BUTTON,
+    SELECT_BACK_BUTTON,
+    DOWN_BUTTON
+};
 
 // ===== Function Definitions =====
 
@@ -51,19 +68,22 @@ void initializeDisplay(uint8_t initDisplayBrightness);
 bool initializeTouchScreen();
 
 // Reads the touchscreen to see if it is being pressed
-void readTouchScreen();
+ButtonPressed readTouchScreen();
 
-// Determines if a button was short- or long-pressed
-void determineTouchPress();
-
-// Handles all the different actions per button
-void handleButtonActions();
+// Determines if a button was short- or long-pressed, and only returns when the press is correct
+ButtonPressed determineTouchPress();
 
 // Clears the display by filling it with black
 void clearDisplay();
 
 // To set the brightness of the display. Int of 0 - 255 as input
 void setBrightness(uint8_t value);
+
+// Set the cursor location in the screen
+void setCursorLocation(uint16_t x, uint16_t y);
+
+// Set the text size
+void setTextSize(uint8_t size);
 
 // To display a status message mainly for startup diagnostics
 void displayStatusMessage(String message, String state, uint16_t stateColor);
