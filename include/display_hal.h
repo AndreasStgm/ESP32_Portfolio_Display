@@ -53,11 +53,8 @@ bool initializeTouchScreen();
 // Reads the touchscreen to see if it is being pressed
 void readTouchScreen();
 
-// Determines which button is pressed, and if it is short- or long-pressed
+// Determines if a button was short- or long-pressed
 void determineTouchPress();
-
-// Handles all the different actions per state
-void handleTouchStates();
 
 // Handles all the different actions per button
 void handleButtonActions();

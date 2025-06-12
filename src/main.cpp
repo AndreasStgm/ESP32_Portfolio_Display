@@ -76,5 +76,5 @@ void loop()
 {
   readTouchScreen();
 
-  delay(1);
+  delay(50);
 }

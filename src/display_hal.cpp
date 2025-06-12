@@ -5,8 +5,7 @@
 enum class TouchState
 {
     RELEASED,
-    PRESSED,
-    LONG_PRESSED
+    PRESSED
 };
 
 enum class ButtonPressed
@@ -40,10 +39,13 @@ Arduino_GFX *gfx = new Arduino_Canvas(
 
 BBCapTouch touchPanel;
 
-ButtonPressed triggeredTouchZone = ButtonPressed::NONE;
-
+TouchState previousTouchState = TouchState::RELEASED;
 TouchState currentTouchState = TouchState::RELEASED;
+
 ButtonPressed whichButtonPressed = ButtonPressed::NONE;
+
+unsigned long last_rise_time = 0;
+
 bool singlePressFunctionCompleted = false;
 
 // ===== Functions Implementations =====
@@ -89,75 +91,50 @@ void readTouchScreen()
             // Check if touch press is within top button
             if (samplesInfo.y[0] < SCREEN_HEIGHT / 3)
             {
-                triggeredTouchZone = ButtonPressed::UP_BUTTON;
+                whichButtonPressed = ButtonPressed::UP_BUTTON;
+                currentTouchState = TouchState::PRESSED;
             }
             else if (samplesInfo.y[0] > SCREEN_HEIGHT / 3 * 2)
             {
-                triggeredTouchZone = ButtonPressed::DOWN_BUTTON;
+                whichButtonPressed = ButtonPressed::DOWN_BUTTON;
+                currentTouchState = TouchState::PRESSED;
             }
             else
             {
-                triggeredTouchZone = ButtonPressed::SELECT_BACK_BUTTON;
+                whichButtonPressed = ButtonPressed::SELECT_BACK_BUTTON;
+                currentTouchState = TouchState::PRESSED;
             }
         }
     }
     // Not pressed
     else
     {
-        triggeredTouchZone = ButtonPressed::NONE;
+        whichButtonPressed = ButtonPressed::NONE;
+        currentTouchState = TouchState::RELEASED;
     }
+
+    determineTouchPress();
 }
 
 void determineTouchPress()
 {
-    // If no button press is detected, make sure that the states are set to an unpressed button
-    if (triggeredTouchZone == ButtonPressed::NONE)
+    // Detect a long press of the buttons
+    if (previousTouchState == TouchState::PRESSED && currentTouchState == TouchState::PRESSED && millis() - last_rise_time > TOUCH_PRESS_LONG_PRESS_DELAY)
     {
-        currentTouchState = TouchState::RELEASED;
-        whichButtonPressed = ButtonPressed::NONE;
-        singlePressFunctionCompleted = false;
-    }
-    else
-    {
-        static unsigned long last_cycle_edge_time = 0;
-        unsigned long cycle_edge_time = millis();
-
-        // To detect a rising edge
-        if (currentTouchState == TouchState::RELEASED)
+        // Only allow a long press for the up and down buttons
+        if (whichButtonPressed == ButtonPressed::UP_BUTTON || whichButtonPressed == ButtonPressed::DOWN_BUTTON)
         {
-            // If the time passed is longer than the debounce time
-            if (cycle_edge_time - last_cycle_edge_time > TOUCH_PRESS_DEBOUNCE_DELAY)
-            {
-                currentTouchState = TouchState::PRESSED;
-                whichButtonPressed = triggeredTouchZone;
-            }
+            handleButtonActions();
         }
-        // To detect a button being held
-        else if (currentTouchState == TouchState::PRESSED && (triggeredTouchZone == ButtonPressed::UP_BUTTON || triggeredTouchZone == ButtonPressed::DOWN_BUTTON))
-        {
-            // If the time passed is longer than the time that a long press takes
-            if (cycle_edge_time - last_cycle_edge_time > TOUCH_PRESS_LONG_PRESS_DELAY)
-            {
-                currentTouchState = TouchState::LONG_PRESSED;
-                whichButtonPressed = triggeredTouchZone;
-            }
-        }
-
-        last_cycle_edge_time = cycle_edge_time;
     }
-}
-
-void handleTouchStates()
-{
-    if (currentTouchState == TouchState::PRESSED && singlePressFunctionCompleted == false)
+    // Detect a rising edge of a button
+    else if (previousTouchState == TouchState::RELEASED && currentTouchState == TouchState::PRESSED)
     {
-        handleButtonActions();
-        singlePressFunctionCompleted = true;
-    }
-    else if (currentTouchState == TouchState::LONG_PRESSED)
-    {
+        last_rise_time = millis();
         handleButtonActions();
     }
+
+    previousTouchState = currentTouchState;
 }
 
 void handleButtonActions()
