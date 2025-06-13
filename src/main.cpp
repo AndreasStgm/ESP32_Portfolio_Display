@@ -88,19 +88,34 @@ void setup()
     displayStatusMessage("SD Card Total Space: ", (String)stats[1] + "MB", CYAN);
     displayStatusMessage("SD Card Used Space: ", (String)stats[2] + "MB", CYAN);
 
+    // Load the topics from the SD card
     topicArray = assembleTopicsFromDirectory(SD, READ_DIRECTORY);
-    if (!topicArray[0].textFileName.isEmpty())
+    // Check if any errors are returned
+    if (topicArray[0].textFileName == "-1")
     {
-      displayStatusMessage("TXT File Read: ", "OK", GREEN);
+      displayStatusMessage(topicArray[0].name + ": ", "FAILED", RED);
+    }
+    else if (topicArray[0].textFileName == "-2")
+    {
+      displayPrintln(topicArray[0].name, WHITE);
     }
     else
     {
-      displayStatusMessage("TXT File Read: ", "NONE FOUND", RED);
-    }
-    displayPrintln("TXT Files found: ", WHITE);
-    for (uint8_t i = 0; i < countAvailableTopics(topicArray); i++)
-    {
-      displayPrintln("  " + topicArray[i].textFileName, CYAN);
+      // Check if no topics were found
+      if (!topicArray[0].textFileName.isEmpty())
+      {
+        displayStatusMessage("TXT File Read: ", "OK", GREEN);
+      }
+      else
+      {
+        displayStatusMessage("TXT File Read: ", "NONE FOUND", RED);
+      }
+      // List the found files
+      displayPrintln("TXT Files found: ", WHITE);
+      for (uint8_t i = 0; i < countAvailableTopics(topicArray); i++)
+      {
+        displayPrintln("  " + topicArray[i].textFileName, CYAN);
+      }
     }
   }
   else

@@ -11,8 +11,6 @@ ButtonPressed whichButtonPressed = ButtonPressed::NONE;
 
 unsigned long last_rise_time = 0;
 
-bool singlePressFunctionCompleted = false;
-
 // ===== Display Driver and Panel Configuration =====
 
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(

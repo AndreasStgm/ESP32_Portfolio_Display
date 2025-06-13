@@ -58,18 +58,28 @@ std::array<uint64_t, 3> getSDCardStats()
 
 std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, const char *dirname)
 {
-    File root = fs.open(dirname);
-    // if (!root) // TODO: fix by passing an error to the main and filling the array through a pointer
-    // {
-    //     displayStatusMessage("Open Directory: ", "FAILED", RED);
-    // }
-    // if (!root.isDirectory())
-    // {
-    //     displayPrintln("Specified path is not a directory!", WHITE);
-    // }
-
     std::array<Topic, MAXIMUM_FILE_AMOUNT> resultArray;
     uint8_t arrayPosition = 0;
+
+    File root = fs.open(dirname);
+    if (!root) // TODO: fix by passing an error to the main and filling the array through a pointer
+    {
+        Topic errorFeedbackTopic = Topic();
+        errorFeedbackTopic.textFileName = "-1";
+        errorFeedbackTopic.name = "Open Directory";
+        resultArray[0] = errorFeedbackTopic;
+
+        return resultArray;
+    }
+    if (!root.isDirectory())
+    {
+        Topic errorFeedbackTopic = Topic();
+        errorFeedbackTopic.textFileName = "-2";
+        errorFeedbackTopic.name = "Specified path is not a directory!";
+        resultArray[0] = errorFeedbackTopic;
+
+        return resultArray;
+    }
 
     File file = root.openNextFile();
     while (file)
