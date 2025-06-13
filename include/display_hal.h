@@ -41,7 +41,10 @@
 
 #define INTERFACE_BORDER_WIDTH 3
 #define NAVIGATION_WIDTH 90
-#define PADDING_SIZE 45
+#define MAIN_SCREEN_PADDING_SIZE 45
+#define DETAILS_SCREEN_PADDING_SIZE 30
+#define DETAILS_LINE_WIDTH 55
+#define DETAILS_LINE_AMOUNT 23
 
 // ===== Enum Definitions =====
 
@@ -93,6 +96,12 @@ void displayPrint(String text, uint16_t color);
 
 // To print a string finishing with a newline
 void displayPrintln(String text, uint16_t color);
+
+// Prints on the display, without flushing the text to be actually displayed
+void displayPrintWithoutFlush(String text, uint16_t color);
+
+// Flush all current text to the display
+void flushToDisplay();
 
 // Draw the border of the application's interface
 void displayDrawInterface(uint16_t interfaceColor, uint16_t centerButtonTextColor, String centerButtonText);

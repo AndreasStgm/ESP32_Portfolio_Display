@@ -127,7 +127,6 @@ ButtonPressed determineTouchPress()
 void clearDisplay()
 {
     gfx->fillScreen(BLACK);
-    gfx->flush();
 }
 
 void setBrightness(uint8_t value)
@@ -166,6 +165,17 @@ void displayPrintln(String text, uint16_t color)
     gfx->flush();
 }
 
+void displayPrintWithoutFlush(String text, uint16_t color)
+{
+    gfx->setTextColor(color);
+    gfx->print(text);
+}
+
+void flushToDisplay()
+{
+    gfx->flush();
+}
+
 void displayDrawInterface(uint16_t interfaceColor, uint16_t buttonIconTextColor, String centerButtonText)
 {
     clearDisplay();
@@ -188,6 +198,4 @@ void displayDrawInterface(uint16_t interfaceColor, uint16_t buttonIconTextColor,
     // Draw the navigation buttons
     gfx->drawTriangle(SCREEN_WIDTH - NAVIGATION_WIDTH / 2, SCREEN_HEIGHT / 9, SCREEN_WIDTH - NAVIGATION_WIDTH / 3, SCREEN_HEIGHT / 9 * 2, SCREEN_WIDTH - NAVIGATION_WIDTH / 3 * 2, SCREEN_HEIGHT / 9 * 2, buttonIconTextColor);
     gfx->drawTriangle(SCREEN_WIDTH - NAVIGATION_WIDTH / 2, SCREEN_HEIGHT / 9 * 8, SCREEN_WIDTH - NAVIGATION_WIDTH / 3, SCREEN_HEIGHT / 9 * 7, SCREEN_WIDTH - NAVIGATION_WIDTH / 3 * 2, SCREEN_HEIGHT / 9 * 7, buttonIconTextColor);
-    // Flush all graphics so they are displayed
-    gfx->flush();
 }

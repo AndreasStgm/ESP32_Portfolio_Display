@@ -40,4 +40,4 @@ std::array<Topic, MAXIMUM_FILE_AMOUNT> assembleTopicsFromDirectory(fs::FS &fs, c
 uint8_t countAvailableTopics(std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray);
 
 // Read a file from path
-void readFile(fs::FS &fs, const char *path);
+String readFile(fs::FS &fs, String path);

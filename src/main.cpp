@@ -3,6 +3,10 @@
 #include "display_hal.h"
 #include "storage_hal.h"
 
+// ===== Definitions =====
+
+#define READ_DIRECTORY "/"
+
 // ===== Enum Definitions =====
 
 enum class ScreenState
@@ -19,6 +23,8 @@ enum class DeviceState
 // ===== Global Variables =====
 
 std::array<Topic, MAXIMUM_FILE_AMOUNT> topicArray;
+Topic selectedtopic;
+uint16_t topicLineCount = 0;
 
 ScreenState currentScreenState = ScreenState::UPDATE;
 DeviceState currentDeviceState = DeviceState::MAIN_SCREEN;
@@ -33,14 +39,17 @@ void stateHandler();
 // Determines the action of the up and down buttons based on the device's state
 void determineUpDownActionBasedOnDeviceState(ButtonPressed actionButton);
 
-// Dynamicall moves through the index and cycles it around when the up or down buttons are pressed
-void moveThroughIndex(ButtonPressed moveDirection, uint8_t maximum_index);
+// Dynamically moves through the index and cycles it around when the up or down buttons are pressed
+void moveThroughIndexAndCycle(ButtonPressed moveDirection, uint8_t maximum_index);
+
+// Also moves through teh index, but limits it to the maximum value
+void moveThroughIndexAndLimit(ButtonPressed moveDirection, uint8_t maximum_index);
 
 // Display the different topics with an arrow pointing to the selected topic
 void showTopicOptions(uint8_t selectedIndex, std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray);
 
 // Display the different topics
-void showTopicDetails(Topic selectedTopic);
+void showTopicDetails(uint8_t lineIndex, Topic selectedTopic);
 
 // ===== Setup =====
 
@@ -79,7 +88,7 @@ void setup()
     displayStatusMessage("SD Card Total Space: ", (String)stats[1] + "MB", CYAN);
     displayStatusMessage("SD Card Used Space: ", (String)stats[2] + "MB", CYAN);
 
-    topicArray = assembleTopicsFromDirectory(SD, "/");
+    topicArray = assembleTopicsFromDirectory(SD, READ_DIRECTORY);
     if (!topicArray[0].textFileName.isEmpty())
     {
       displayStatusMessage("TXT File Read: ", "OK", GREEN);
@@ -125,9 +134,10 @@ void stateHandler()
     else if (currentDeviceState == DeviceState::DETAILS_SCREEN)
     {
       displayDrawInterface(MAGENTA, WHITE, "Back");
-      // showTopicDetails(topic)
+      showTopicDetails(currentScreenIndex, selectedtopic);
     }
 
+    flushToDisplay();
     currentScreenState = ScreenState::WAITING;
   }
   else if (currentScreenState == ScreenState::WAITING)
@@ -140,6 +150,7 @@ void stateHandler()
         if (currentDeviceState == DeviceState::MAIN_SCREEN)
         {
           currentDeviceState = DeviceState::DETAILS_SCREEN;
+          selectedtopic = topicArray[currentScreenIndex];
         }
         else if (currentDeviceState == DeviceState::DETAILS_SCREEN)
         {
@@ -161,15 +172,15 @@ void determineUpDownActionBasedOnDeviceState(ButtonPressed actionButton)
 {
   if (currentDeviceState == DeviceState::MAIN_SCREEN)
   {
-    moveThroughIndex(actionButton, countAvailableTopics(topicArray) - 1);
+    moveThroughIndexAndCycle(actionButton, countAvailableTopics(topicArray) - 1);
   }
   else if (currentDeviceState == DeviceState::DETAILS_SCREEN)
   {
-    moveThroughIndex(actionButton, 0);
+    moveThroughIndexAndLimit(actionButton, topicLineCount - DETAILS_LINE_AMOUNT);
   }
 }
 
-void moveThroughIndex(ButtonPressed moveDirection, uint8_t maximum_index)
+void moveThroughIndexAndCycle(ButtonPressed moveDirection, uint8_t maximum_index)
 {
   if (moveDirection == ButtonPressed::DOWN_BUTTON)
   {
@@ -195,23 +206,81 @@ void moveThroughIndex(ButtonPressed moveDirection, uint8_t maximum_index)
   }
 }
 
+void moveThroughIndexAndLimit(ButtonPressed moveDirection, uint8_t maximum_index)
+{
+  if (moveDirection == ButtonPressed::DOWN_BUTTON)
+  {
+    if (currentScreenIndex < maximum_index)
+    {
+      currentScreenIndex++;
+    }
+  }
+  else if (moveDirection == ButtonPressed::UP_BUTTON)
+  {
+    if (currentScreenIndex > 0)
+    {
+      currentScreenIndex--;
+    }
+  }
+}
+
 void showTopicOptions(uint8_t selectedIndex, std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray)
 {
-  uint16_t divisionSize = (SCREEN_HEIGHT - PADDING_SIZE * 2) / countAvailableTopics(topicsArray);
+  uint16_t divisionSize = (SCREEN_HEIGHT - MAIN_SCREEN_PADDING_SIZE * 2) / countAvailableTopics(topicsArray);
+
   setTextSize(2);
 
   // Display all the different topics available
   for (uint8_t i = 0; i < countAvailableTopics(topicsArray); i++)
   {
-    setCursorLocation(PADDING_SIZE, PADDING_SIZE + (divisionSize * i + 8)); // Add the 8 to compensate for the text size
-    displayPrint(topicsArray[i].name, WHITE);
+    setCursorLocation(MAIN_SCREEN_PADDING_SIZE, MAIN_SCREEN_PADDING_SIZE + (divisionSize * i + 8)); // Add the 8 to compensate for the text size
+    displayPrintWithoutFlush(topicsArray[i].name, WHITE);
   }
 
   // Display the indicator
-  setCursorLocation(PADDING_SIZE / 2, PADDING_SIZE + (divisionSize * selectedIndex + 8));
-  displayPrint(">", WHITE);
+  setCursorLocation(MAIN_SCREEN_PADDING_SIZE / 2, MAIN_SCREEN_PADDING_SIZE + (divisionSize * selectedIndex + 8));
+  displayPrintWithoutFlush(">", WHITE);
 }
 
-void showTopicDetails(Topic selectedTopic)
+void showTopicDetails(uint8_t lineIndex, Topic selectedTopic)
 {
+  // Display the title of the topic
+  setTextSize(2);
+  setCursorLocation(DETAILS_SCREEN_PADDING_SIZE, DETAILS_SCREEN_PADDING_SIZE);
+  displayPrintWithoutFlush(selectedTopic.name, WHITE);
+
+  String fileContents = readFile(SD, READ_DIRECTORY + selectedtopic.textFileName);
+  if (fileContents == "-1")
+  {
+    displayStatusMessage("Open File: ", "FAILED", RED);
+  }
+  else
+  {
+    // First count the amount of lines based on the
+    topicLineCount = 0;
+    for (unsigned int i = 0; i < fileContents.length(); i++)
+    {
+      if (fileContents[i] == '\n')
+      {
+        topicLineCount++;
+      }
+    }
+
+    String splitLines[topicLineCount];
+    for (uint16_t i = 0; i < topicLineCount; i++)
+    {
+      // Add the current line to the array
+      splitLines[i] = fileContents.substring(0, fileContents.indexOf('\n'));
+      // Cut the added line off from the remaining string
+      fileContents = fileContents.substring(fileContents.indexOf('\n') + 1);
+    }
+
+    // Display the text of the topic, for a set amount of lines or for the max amount of lines available
+    setTextSize(1);
+    for (uint8_t i = 0; i < DETAILS_LINE_AMOUNT && i < topicLineCount; i++)
+    {
+      setCursorLocation(DETAILS_SCREEN_PADDING_SIZE, DETAILS_SCREEN_PADDING_SIZE + 29 + i * 8);
+      displayPrintWithoutFlush(splitLines[currentScreenIndex + i], WHITE);
+    }
+  }
 }

@@ -105,21 +105,17 @@ uint8_t countAvailableTopics(std::array<Topic, MAXIMUM_FILE_AMOUNT> topicsArray)
     return MAXIMUM_FILE_AMOUNT;
 }
 
-void readFile(fs::FS &fs, const char *path)
+String readFile(fs::FS &fs, String path)
 {
-    Serial.printf("Reading file: %s\n", path);
-
+    // Open up the file, and if the file does not want to open, return -1 to indicate error
     File file = fs.open(path);
     if (!file)
     {
-        Serial.println("Failed to open file for reading");
-        return;
+        return "-1";
     }
-
-    Serial.print("Read from file: ");
-    while (file.available())
-    {
-        Serial.write(file.read());
-    }
+    // Read the actual file contents
+    String completeFileContents = file.readString();
     file.close();
+
+    return completeFileContents;
 }
